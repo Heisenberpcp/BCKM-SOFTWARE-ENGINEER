@@ -2,21 +2,15 @@ package edu.itc.shop.repository;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
-
 import edu.itc.shop.domain.Product;
 
 @Repository
 public class ProductRepository {
     private final JdbcClient jdbc;
-
-    // constructor build jdbc (injection)
-    public ProductRepository(JdbcClient jdbc) { 
-        this.jdbc = jdbc; 
-    }
+    public ProductRepository(JdbcClient jdbc) { this.jdbc = jdbc; }
 
     public List<Product> findAll() {
         return jdbc.sql("SELECT id, name, price, stock FROM product ORDER BY id")
@@ -24,8 +18,21 @@ public class ProductRepository {
     }
 
     public Optional<Product> findById(long id) {
-        // TODO
-        return Optional.empty();
+        return jdbc.sql("SELECT id, name, price, stock FROM product WHERE id = :id")
+                   .param("id", id)
+                   .query(Product.class)
+                   .optional();
+    }
+
+    public List<Product> findByNameContaining(String text) {
+        return jdbc.sql("""
+                        SELECT id, name, price, stock FROM product
+                        WHERE LOWER(name) LIKE LOWER(:pattern)
+                        ORDER BY id
+                        """)
+                   .param("pattern", "%" + text + "%")
+                   .query(Product.class)
+                   .list();
     }
 
     public long insert(Product p) {
@@ -37,7 +44,18 @@ public class ProductRepository {
     }
 
     public int updateStock(long id, int delta) {
-        // TODO: UPDATE product SET stock = stock + :delta WHERE id = :id AND stock + :delta >= 0
-        return 0;
+        return jdbc.sql("""
+                        UPDATE product SET stock = stock + :delta
+                        WHERE id = :id AND stock + :delta >= 0
+                        """)
+                   .param("delta", delta)
+                   .param("id", id)
+                   .update();
+    }
+
+    public int delete(long id) {
+        return jdbc.sql("DELETE FROM product WHERE id = :id")
+                   .param("id", id)
+                   .update();
     }
 }
