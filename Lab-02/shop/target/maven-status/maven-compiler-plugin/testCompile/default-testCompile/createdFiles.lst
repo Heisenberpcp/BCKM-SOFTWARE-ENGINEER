@@ -1,0 +1,4 @@
+edu\itc\shop\repository\ProductRepositoryTest.class
+edu\itc\shop\ShopApplicationTests.class
+edu\itc\shop\web\ProductControllerTest.class
+edu\itc\shop\service\ProductServiceTest.class
